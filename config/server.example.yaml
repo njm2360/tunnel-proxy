@@ -1,0 +1,16 @@
+listen_addr: "127.0.0.1:9443"
+log_level: "info"
+allowed_hosts: []
+
+keys:
+  server_key: "./data/server.key"
+  authorized_keys: "./data/authorized_keys"
+
+tls:
+  cert: ""
+  key: ""
+
+timeouts:
+  dial_ms: 10000
+  response_ms: 30000
+  stream_idle_ms: 90000

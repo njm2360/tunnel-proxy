@@ -1,0 +1,26 @@
+listen_addr: "127.0.0.1:8080"
+log_level: "info"
+
+tunnel:
+  server_addr: "your-server.example.com:9443"
+  client_key: "./data/client.key"
+  server_pub_key: "./data/server.pub"
+  reconnect_delay_ms: 1000
+  max_reconnect_delay_ms: 30000
+  tls:
+    enabled: false
+    ca_cert: ""
+    insecure: false
+
+mitm:
+  ca_cert: "./data/ca.crt"
+  ca_key: "./data/ca.key"
+  redis_url: "redis://localhost:6379"
+
+upstream_proxy:
+  http_url: ""
+  # http_url: "http://user:pass@proxy.example.com:8080"
+  https_url: ""
+  # https_url: "https://user:pass@proxy.example.com:8443"
+  ca_cert: ""
+  insecure: false

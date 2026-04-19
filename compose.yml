@@ -1,0 +1,39 @@
+services:
+
+  redis:
+    image: redis:7-alpine
+    command: >
+      redis-server --save 60 1 --maxmemory 128mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  proxy-client:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    volumes:
+      - ./config/client.yaml:/config/client.yaml:ro
+      - ./data:/data:ro
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  proxy-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    volumes:
+      - ./config/server.yaml:/config/server.yaml:ro
+      - ./data:/data:ro
+    ports:
+      - "9443:9443"
+
+volumes:
+  redisdata:

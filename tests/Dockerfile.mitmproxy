@@ -1,0 +1,11 @@
+FROM mitmproxy/mitmproxy:11
+EXPOSE 8080
+# regular モードで HTTP/HTTPS プロキシとして動作。
+# connection_strategy=lazy により CONNECT トンネルを TLS インターセプトせずに転送する。
+# --ignore-hosts により proxy-server への接続を生 TCP トンネルとして転送する。
+# mitmproxy が smux+AES の WebSocket フレームを解釈しようとして切断するのを防ぐ。
+CMD ["mitmdump", \
+     "--mode", "regular", \
+     "--listen-port", "8080", \
+     "--ignore-hosts", "proxy-server", \
+     "--set", "termlog_verbosity=info"]

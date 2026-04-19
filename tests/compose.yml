@@ -1,0 +1,154 @@
+services:
+
+  # ── Redis キャッシュ ──────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    command: >
+      redis-server
+      --save 60 1
+      --maxmemory 64mb
+      --maxmemory-policy allkeys-lru
+    networks:
+      - tunnel-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── リモートプロキシサーバー ──────────────────────────────
+  proxy-server:
+    build:
+      context: ..
+      dockerfile: tests/Dockerfile
+    command: ["/app/server", "--config", "/config/server.yaml"]
+    volumes:
+      - ./config/server.yaml:/config/server.yaml:ro
+      - ./keys:/keys:ro
+    networks:
+      - tunnel-net
+      - target-net
+    restart: unless-stopped
+
+  # ── ローカルプロキシクライアント ──────────────────────────
+  proxy-client:
+    build:
+      context: ..
+      dockerfile: tests/Dockerfile
+    command: ["/app/client", "--config", "/config/client.yaml"]
+    volumes:
+      - ./config/client.yaml:/config/client.yaml:ro
+      - ./keys:/keys:ro
+      - certs:/certs
+    ports:
+      - "8080:8080"
+    networks:
+      - tunnel-net
+      - client-net
+    depends_on:
+      proxy-server:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "8080"]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+      start_period: 5s
+
+  # ── WebSocket エコーサーバー ──────────────────────────────
+  ws-echo:
+    image: jmalloc/echo-server
+    environment:
+      PORT: "8765"
+    networks:
+      - target-net
+    restart: unless-stopped
+
+  # ── ローカル HTTP テストサーバー ──────────────────────────
+  httpbin:
+    image: mccutchen/go-httpbin
+    networks:
+      - target-net
+    restart: unless-stopped
+
+  # ── ローカル HTTPS テストサーバー (nginx TLS → httpbin) ──
+  httpbin-tls:
+    build:
+      context: .
+      dockerfile: Dockerfile.httpbin-tls
+    networks:
+      - target-net
+    depends_on:
+      - httpbin
+    restart: unless-stopped
+
+  # ── 上流プロキシ (mitmproxy) ─────────────────────────────
+  upstream-proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile.mitmproxy
+    profiles: ["test"]
+    networks:
+      - client-net
+      - tunnel-net
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import socket; socket.create_connection(('localhost',8080),1).close()"]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+
+  # ── 上流プロキシ経由クライアント (テスト用) ───────────────
+  proxy-client-via-proxy:
+    build:
+      context: ..
+      dockerfile: tests/Dockerfile
+    profiles: ["test"]
+    command: ["/app/client", "--config", "/config/client.yaml"]
+    volumes:
+      - ./config/client-via-proxy.yaml:/config/client.yaml:ro
+      - ./keys:/keys:ro
+      - certs:/certs
+    networks:
+      - client-net
+      - tunnel-net
+    depends_on:
+      proxy-server:
+        condition: service_started
+      upstream-proxy:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "8081"]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  # ── テストランナー ────────────────────────────────────────
+  tester:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    profiles: ["test"]
+    volumes:
+      - certs:/certs
+    networks:
+      - client-net
+    depends_on:
+      proxy-client:
+        condition: service_healthy
+      proxy-client-via-proxy:
+        condition: service_healthy
+
+volumes:
+  certs:
+
+networks:
+  tunnel-net:
+  client-net:
+  target-net:

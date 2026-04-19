@@ -1,0 +1,24 @@
+listen_addr: "0.0.0.0:8081"
+log_level: "debug"
+
+tunnel:
+  server_addr: "proxy-server:9443"
+  client_key: "/keys/client-via-proxy.key"
+  server_pub_key: "/keys/server.pub"
+  reconnect_delay_ms: 1000
+  max_reconnect_delay_ms: 10000
+  tls:
+    enabled: false
+    ca_cert: ""
+    insecure: false
+
+mitm:
+  ca_cert: "/certs/ca.crt"
+  ca_key: "/certs/ca.key"
+  redis_url: "redis://redis:6379"
+
+upstream_proxy:
+  http_url: "http://upstream-proxy:8080"
+  https_url: ""
+  ca_cert: ""
+  insecure: false

@@ -1,0 +1,18 @@
+listen_addr: "0.0.0.0:9443"
+log_level: "debug"
+allowed_hosts: []
+
+keys:
+  server_key: "/keys/server.key"
+  authorized_keys: "/keys/authorized_keys"
+
+tls:
+  cert: ""
+  key: ""
+
+upstream_tls:
+  insecure: true  # httpbin-tls の自己署名証明書を許可
+
+timeouts:
+  dial_ms: 10000
+  response_ms: 60000
