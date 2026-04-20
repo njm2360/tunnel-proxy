@@ -38,9 +38,9 @@ func handleStream(stream *smux.Stream, cfg *config.ServerConfig) {
 
 	switch hdr.Type {
 	case tunnel.StreamHTTP, tunnel.StreamHTTPS:
-		relayHTTP(stream, hdr, cfg, dialTimeout, responseTimeout, idleTimeout)
+		handleHTTP(stream, hdr, cfg, dialTimeout, responseTimeout, idleTimeout)
 	case tunnel.StreamWS, tunnel.StreamWSS:
-		relayWebSocket(stream, hdr, cfg, dialTimeout)
+		handleWebSocket(stream, hdr, cfg, dialTimeout)
 	default:
 		slog.Warn("unknown stream type", "type", hdr.Type)
 	}

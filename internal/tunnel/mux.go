@@ -16,10 +16,10 @@ func smuxConfig() *smux.Config {
 	return cfg
 }
 
-func NewClientSession(conn net.Conn) (*smux.Session, error) {
+func NewClient(conn net.Conn) (*smux.Session, error) {
 	return smux.Client(conn, smuxConfig())
 }
 
-func NewServerSession(conn net.Conn) (*smux.Session, error) {
+func NewServer(conn net.Conn) (*smux.Session, error) {
 	return smux.Server(conn, smuxConfig())
 }

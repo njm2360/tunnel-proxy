@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"encrypt-proxy/internal/config"
-	"encrypt-proxy/internal/httpconnect"
+	"encrypt-proxy/internal/proxytunnel"
 )
 
 const proxyDialTimeout = 10 * time.Second
@@ -23,7 +23,7 @@ func connectTunnelDialer(cfg *config.ClientConfig, proxyRawURL string) func(cont
 	}
 	return func(ctx context.Context, network, addr string) (net.Conn, error) {
 		dial := func() (net.Conn, error) { return dialProxy(cfg, proxyURL) }
-		return httpconnect.ConnectViaProxy(dial, cfg.Tunnel.ServerAddr, proxyURL)
+		return proxytunnel.Dial(dial, cfg.Tunnel.ServerAddr, proxyURL)
 	}
 }
 

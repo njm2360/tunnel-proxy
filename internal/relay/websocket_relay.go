@@ -13,12 +13,12 @@ import (
 	"github.com/xtaci/smux"
 )
 
-// relayWebSocket は WebSocket アップグレードを中継し、その後の双方向通信をブリッジする。
+// handleWebSocket は WebSocket アップグレードを中継し、その後の双方向通信をブリッジする。
 //
 // WebSocket は HTTP/1.1 の Upgrade ハンドシェイクで始まり、成功後は
 // HTTP のリクエスト/レスポンスモデルを離れて生のバイトストリームになる。
-// そのため HTTP ループ処理の relayHTTP とは別に実装している。
-func relayWebSocket(stream *smux.Stream, hdr tunnel.StreamHeader, cfg *config.ServerConfig, dialTimeout time.Duration) {
+// そのため HTTP ループ処理の handleHTTP とは別に実装している。
+func handleWebSocket(stream *smux.Stream, hdr tunnel.StreamHeader, cfg *config.ServerConfig, dialTimeout time.Duration) {
 	streamReader := bufio.NewReaderSize(stream, 64*1024)
 
 	// クライアントから Upgrade リクエスト（GET + Connection: Upgrade）を読む。

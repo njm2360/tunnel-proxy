@@ -122,7 +122,7 @@ func connect(cfg *config.ClientConfig, serverPubKey ed25519.PublicKey, identity 
 		return nil, err
 	}
 
-	session, err := tunnel.NewClientSession(enc)
+	session, err := tunnel.NewClient(enc)
 	if err != nil {
 		enc.Close()
 		return nil, err

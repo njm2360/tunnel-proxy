@@ -82,7 +82,7 @@ func handleConn(conn net.Conn, identity tunnel.ServerIdentity, authorizedKeys tu
 	}
 	slog.Info("new tunnel connection", "remote", conn.RemoteAddr())
 
-	session, err := tunnel.NewServerSession(enc)
+	session, err := tunnel.NewServer(enc)
 	if err != nil {
 		slog.Error("new server session", "err", err)
 		enc.Close()

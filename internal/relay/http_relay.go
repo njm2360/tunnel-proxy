@@ -17,9 +17,9 @@ import (
 	"github.com/xtaci/smux"
 )
 
-// relayHTTP は HTTP/HTTPS ストリームを宛先へ中継する。
+// handleHTTP は HTTP/HTTPS ストリームを宛先へ中継する。
 // 1本の smux ストリームで Keep-Alive を活かしてリクエストをループ処理する。
-func relayHTTP(stream *smux.Stream, hdr tunnel.StreamHeader, cfg *config.ServerConfig, dialTimeout, responseTimeout, idleTimeout time.Duration) {
+func handleHTTP(stream *smux.Stream, hdr tunnel.StreamHeader, cfg *config.ServerConfig, dialTimeout, responseTimeout, idleTimeout time.Duration) {
 	upstream, err := dialUpstream(hdr, cfg, dialTimeout)
 	if err != nil {
 		slog.Warn("dial upstream", "target", hdr.HostPort, "err", err)

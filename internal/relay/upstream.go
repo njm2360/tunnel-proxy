@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"encrypt-proxy/internal/config"
-	"encrypt-proxy/internal/httpconnect"
+	"encrypt-proxy/internal/proxytunnel"
 )
 
 // dialViaProxy は HTTP CONNECT でプロキシを経由して target へ接続する。
@@ -45,7 +45,7 @@ func dialViaProxy(target string, useTLS bool, cfg *config.ServerConfig, timeout 
 		return net.DialTimeout("tcp", proxyAddr, timeout)
 	}
 
-	conn, err := httpconnect.ConnectViaProxy(dial, target, proxyURL)
+	conn, err := proxytunnel.Dial(dial, target, proxyURL)
 	if err != nil {
 		return nil, err
 	}
