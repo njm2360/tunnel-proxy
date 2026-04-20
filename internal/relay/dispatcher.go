@@ -1,7 +1,10 @@
 package relay
 
 import (
+	"errors"
+	"io"
 	"log/slog"
+	"net"
 	"time"
 
 	"encrypt-proxy/internal/config"
@@ -14,13 +17,23 @@ func Serve(session *smux.Session, cfg *config.ServerConfig) {
 	for {
 		stream, err := session.AcceptStream()
 		if err != nil {
-			if !session.IsClosed() {
+			if !session.IsClosed() && !isConnReset(err) {
 				slog.Error("accept stream", "err", err)
+			} else {
+				slog.Debug("accept stream closed", "err", err)
 			}
 			return
 		}
 		go handleStream(stream, cfg)
 	}
+}
+
+func isConnReset(err error) bool {
+	if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
+		return true
+	}
+	var netErr *net.OpError
+	return errors.As(err, &netErr)
 }
 
 func handleStream(stream *smux.Stream, cfg *config.ServerConfig) {

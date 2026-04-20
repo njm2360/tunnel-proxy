@@ -3,6 +3,7 @@ package relay
 import (
 	"bufio"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -22,7 +23,7 @@ import (
 func handleHTTP(stream *smux.Stream, hdr tunnel.StreamHeader, cfg *config.ServerConfig, dialTimeout, responseTimeout, idleTimeout time.Duration) {
 	upstream, err := dialUpstream(hdr, cfg, dialTimeout)
 	if err != nil {
-		slog.Warn("dial upstream", "target", hdr.HostPort, "err", err)
+		logDialError("dial upstream", hdr.HostPort, err)
 		writeErrorResponse(stream, http.StatusBadGateway)
 		return
 	}
@@ -128,6 +129,15 @@ func dialUpstream(hdr tunnel.StreamHeader, cfg *config.ServerConfig, timeout tim
 		)
 	}
 	return net.DialTimeout("tcp", target, timeout)
+}
+
+func logDialError(msg, target string, err error) {
+	var dnsErr *net.DNSError
+	if errors.As(err, &dnsErr) {
+		slog.Debug(msg, "target", target, "err", err)
+		return
+	}
+	slog.Warn(msg, "target", target, "err", err)
 }
 
 // writeErrorResponse は smux ストリームに最小限の HTTP エラーレスポンスを書く。

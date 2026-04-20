@@ -32,7 +32,7 @@ func handleWebSocket(stream *smux.Stream, hdr tunnel.StreamHeader, cfg *config.S
 	// dialUpstream より先に ReadRequest するのは、不正リクエストで無駄な接続を防ぐため。
 	upstream, err := dialUpstream(hdr, cfg, dialTimeout)
 	if err != nil {
-		slog.Warn("ws: dial upstream", "target", hdr.HostPort, "err", err)
+		logDialError("ws: dial upstream", hdr.HostPort, err)
 		writeErrorResponse(stream, http.StatusBadGateway)
 		return
 	}

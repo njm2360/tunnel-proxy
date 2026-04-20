@@ -11,13 +11,16 @@ const maxFramePayload = 4 * 1024 * 1024 // 4 MiB
 // writeFrame は plaintext を AEAD 暗号化し、[4B 長さ][暗号文] の形式で書き込む。
 // 長さフィールドは暗号文のバイト数（認証タグ16Bを含む）をビッグエンディアンで示す。
 func writeFrame(w io.Writer, enc *aead, plaintext []byte) error {
-	ct := enc.Seal(plaintext)
+	ct, err := enc.Seal(plaintext)
+	if err != nil {
+		return err
+	}
 	var hdr [4]byte
 	binary.BigEndian.PutUint32(hdr[:], uint32(len(ct)))
 	if _, err := w.Write(hdr[:]); err != nil {
 		return err
 	}
-	_, err := w.Write(ct)
+	_, err = w.Write(ct)
 	return err
 }
 
